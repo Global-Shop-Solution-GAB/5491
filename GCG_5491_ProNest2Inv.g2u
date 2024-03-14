@@ -1,0 +1,545 @@
+Program.Sub.ScreenSU.Start
+Gui.SS_Form_File..create
+Gui.SS_Form_File..caption("Import File Selection")
+Gui.SS_Form_File..size(5365,1725)
+Gui.SS_Form_File..position(0,0)
+Gui.SS_Form_File..forecolor(0)
+Gui.SS_Form_File..BackColor(-2147483633)
+Gui.SS_Form_File..maxbutton(False)
+Gui.SS_Form_File..minbutton(False)
+Gui.SS_Form_File..mousepointer(0)
+Gui.SS_Form_File..sizeable(False)
+Gui.SS_Form_File..MinX(0)
+Gui.SS_Form_File..MinY(0)
+Gui.SS_Form_File..Event(UnLoad,SS_Form_File_UnLoad)
+Gui.SS_Form_File.lbl_txt_FileSelection.create(label,"File Name",True,1800,200,1,100,135,True,0,Arial,8,-2147483633,0)
+Gui.SS_Form_File.lbl_txt_FileSelection.LabelStretch(True)
+Gui.SS_Form_File.txt_FileSelection.create(textbox,"",True,4500,300,1,105,330,True,0,Arial,8,16777215,1)
+Gui.SS_Form_File.txt_FileSelection.tabstop(True)
+Gui.SS_Form_File.txt_FileSelection.tabindex(1)
+Gui.SS_Form_File.cmd_txt_FileSelection.create(button)
+Gui.SS_Form_File.cmd_txt_FileSelection.Caption("^")
+Gui.SS_Form_File.cmd_txt_FileSelection.size(330,330)
+Gui.SS_Form_File.cmd_txt_FileSelection.position(4680,330)
+Gui.SS_Form_File.cmd_txt_FileSelection.tabstop(True)
+Gui.SS_Form_File.cmd_txt_FileSelection.tabindex(2)
+Gui.SS_Form_File.cmd_txt_FileSelection.Event(Click,cmd_txt_FileSelection_Click)
+Gui.SS_Form_File.cmdFileOK.Create(Button)
+Gui.SS_Form_File.cmdFileOK.Size(855,375)
+Gui.SS_Form_File.cmdFileOK.Position(105,705)
+Gui.SS_Form_File.cmdFileOK.Caption("OK")
+Gui.SS_Form_File.cmdFileOK.Event(Click,Import_File)
+Gui.frmupload..Create
+Gui.frmupload..Caption("Upload")
+Gui.frmupload..Size(18930,10425)
+Gui.frmupload..MinX(0)
+Gui.frmupload..MinY(0)
+Gui.frmupload..Position(0,0)
+Gui.frmupload..BackColor(-2147483633)
+Gui.frmupload..MousePointer(0)
+Gui.frmupload..Event(UnLoad,frmupload_UnLoad)
+Gui.frmupload..MaxButton(False)
+Gui.frmupload.GsImport.Create(GsGridControl)
+Gui.frmupload.GsImport.Size(18435,8835)
+Gui.frmupload.GsImport.Position(135,525)
+Gui.frmupload.GsImport.Event(RowCellClick,GsImport_RowCellClick)
+Gui.frmupload.cmdUpload.Create(Button)
+Gui.frmupload.cmdUpload.Size(1035,375)
+Gui.frmupload.cmdUpload.Position(150,9450)
+Gui.frmupload.cmdUpload.Caption("Upload")
+Gui.frmupload.cmdUpload.Event(Click,cmdUpload_Click)
+Gui.frmupload.lbl2.Create(Label,"Not an Inventory Part",True,1935,255,0,16035,9570,True,0,"Arial",8,-2147483633,0)
+Gui.frmupload.lbl4.Create(Label,"Qty not valid",True,1380,255,0,14145,9570,True,0,"Arial",8,-2147483633,0)
+Gui.frmupload.lbl5.Create(Label,"Not Lot Bin Part",True,1380,255,0,11865,9585,True,0,"Arial",8,-2147483633,0)
+Gui.frmupload.txt1.Create(TextBox,"",True,330,300,0,11505,9480,True,0,"Arial",8,33023,1)
+Gui.frmupload.txt1.Locked(True)
+Gui.frmupload.txt2.Create(TextBox,"",True,330,300,0,13785,9480,True,0,"Arial",8,65535,1)
+Gui.frmupload.txt2.Locked(True)
+Gui.frmupload.txt3.Create(TextBox,"",True,330,300,0,15675,9465,True,0,"Arial",8,255,1)
+Gui.frmupload.txt3.Locked(True)
+Gui.frmupload.cmdRefresh.Create(Button)
+Gui.frmupload.cmdRefresh.Size(855,375)
+Gui.frmupload.cmdRefresh.Position(135,75)
+Gui.frmupload.cmdRefresh.Caption("Refresh")
+Gui.frmupload.cmdRefresh.Event(Click,Get_Bin)
+Gui.frmupload.txt4.Create(TextBox,"",True,330,300,0,9240,9465,True,0,"Arial",8,12632256,1)
+Gui.frmupload.txt4.Locked(True)
+Gui.frmupload.lbl6.Create(Label,"Required Bin",True,1380,255,0,9675,9555,True,0,"Arial",8,-2147483633,0)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+	Gui.SS_Form_File..Show
+Program.Sub.Main.End
+
+Program.Sub.Upload.Start
+Program.Sub.Upload.End
+
+Program.Sub.Import_File.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+V.Local.sExcel.Declare
+v.Local.sFilter.Declare
+v.Local.stitle.Declare
+v.Local.iTotClmn.Declare
+v.Local.i.Declare
+v.Local.ssql.Declare
+V.Local.sRet.Declare
+V.Local.sFields.Declare
+
+'f.Intrinsic.Control.CallSub(OldCallwrapper)
+'f.Intrinsic.Control.end
+
+f.Intrinsic.Control.If(v.Screen.SS_Form_File!txt_FileSelection.text,=,"")
+	f.Intrinsic.UI.Msgbox("Invalid File")
+	f.Intrinsic.Control.ExitSub 
+f.Intrinsic.Control.EndIf
+
+gui.SS_Form_File.cmdFileOK.Enabled(false)
+gui.SS_Form_File..Visible(false)
+
+F.ODBC.Connection!con.OpenCompanyConnection(300)
+
+Function.Intrinsic.UI.InvokeWaitDialog("please wait ...")
+
+'Reading from CSV 
+F.Intrinsic.File.File2String(v.Screen.SS_Form_File!txt_FileSelection.text,V.Local.sExcel)
+
+'Spliting to CSV to take care of Comma
+Function.Intrinsic.String.SPLITCSV(V.Local.sExcel,V.Local.sExcel)
+Function.Intrinsic.String.Join(V.Local.sExcel,"||",V.Local.sExcel)
+'output file is text file with comma separated
+
+f.Data.DataTable.CreateFromString("ImportTemp",v.Local.sExcel,"JobName*!*Nest*!*Runs*!*PartName*!*PartWeight*!*QuantityNested*!*Remarks*!*PlateName*!*Material*!*PlateThk*!*PlateWidth*!*PlateLength*!*PlateWeight*!*PlateUtilization*!*DONOTUSE","String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String","||",v.ambient.newline,True)
+
+'delete Header ROW
+f.Data.DataTable.DeleteRow("ImportTemp",0)
+
+v.Local.sFilter.Set("JobName <> ''")
+
+f.Data.DataView.Create("ImportTemp","DVImport",22,v.Local.sFilter,"")
+
+f.Data.DataTable.AddColumn("ImportTemp","Loc","string")
+Function.Data.DataTable.AddExpressionColumn("ImportTemp","Qty","string","[QuantityNested]")
+
+V.Local.sFields.Set("JobName*!*Nest*!*Runs*!*PartName*!*PartWeight*!*QuantityNested*!*Remarks*!*PlateName*!*Material*!*PlateThk*!*PlateWidth*!*PlateLength*!*PlateWeight*!*PlateUtilization*!*DONOTUSE*!*Loc*!*Qty")
+Function.Data.DataView.ToString("ImportTemp", "DVImport",V.Local.sFields,"*!*",v.Ambient.NewLine,V.Local.sRet)
+
+f.Data.Dataview.Close("ImportTemp","DVImport")
+f.Data.DataTable.Close("ImportTemp")
+
+f.Data.DataTable.CreateFromString("Import1",v.Local.sRet,V.Local.sFields,"String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*float","*!*",v.ambient.newline,True)
+f.Data.DataView.Create("Import1","DVImport",22,v.Local.sFilter,"")
+
+
+f.Data.DataTable.AddColumn("Import1","Bin","string")
+f.Data.DataTable.AddColumn("Import1","Bin_Browser","string")
+f.Data.DataTable.AddColumn("Import1","lot","string")
+f.Data.DataTable.AddColumn("Import1","Heat","string")
+f.Data.DataTable.AddColumn("Import1","serial","string")
+'f.Data.DataTable.AddColumn("Import1","TranType","string")
+f.Data.DataTable.AddColumn("Import1","Flag_Lot","string")
+
+'RPAD spaces
+f.Data.DataTable.SetValueFormat("Import1",-1,"PartName","PartName","!@@@@@@@@@@@@@@@@@@@@")
+
+Function.Data.DataTable.AddExpressionColumn("Import1","Part","string","SUBSTRING(PartName,1,17)")
+Function.Data.DataTable.AddExpressionColumn("Import1","rev","string","SUBSTRING(PartName,18,20)")
+
+'f.Data.DataTable.SetValue("Import1",-1,"TranType","R")
+
+Function.Data.DataTable.AddExpressionColumn("Import1","TranType","string","iif(Qty>0,'R','I')")
+'convert -ve valuse to +ve
+Function.Data.DataTable.AddExpressionColumn("Import1","Qty_1","string","iif(Qty<=0,Qty*-1,Qty)")
+
+f.Intrinsic.Control.CallSub(Get_Bin)
+
+gui.frmupload.GsImport.AddGridViewFromDataView("GridViewTo","Import1","DVImport")
+
+gui.frmupload.GsImport.AddStyleFormatCOndition("GridViewTo","Flag_Lot","tagName1","NotEqual","Y")
+gui.frmupload.GsImport.SetStyleFormatConditionProperty("GridViewTo","Flag_Lot","tagName1","Backcolor","Orange")
+gui.frmupload.GsImport.SetStyleFormatConditionProperty("GridViewTo","Flag_Lot","tagName1","ApplyToRow",True)
+
+gui.frmupload.GsImport.AddStyleFormatCOndition("GridViewTo","Flag_Lot","tagName2","Equal","")
+gui.frmupload.GsImport.SetStyleFormatConditionProperty("GridViewTo","Flag_Lot","tagName2","Backcolor","Red")
+gui.frmupload.GsImport.SetStyleFormatConditionProperty("GridViewTo","Flag_Lot","tagName2","ApplyToRow",True)
+
+gui.frmupload.GsImport.AddStyleFormatCondition("GridViewTo","Bin","tagName3","Equal","")
+gui.frmupload.GsImport.SetStyleFormatConditionProperty("GridViewTo","Bin","tagName3","Backcolor","Grey")
+gui.frmupload.GsImport.SetStyleFormatConditionProperty("GridViewTo","Bin","tagName3","ApplyToRow",True)
+
+gui.frmupload.GsImport.AddStyleFormatCondition("GridViewTo","Qty","tagName4","Expression","[Qty]=0")
+'gui.frmupload.GsImport.AddStyleFormatCondition("GridViewTo","Qty","tagName4","Expression","[Qty] = 0 or len[Qty]=0")
+'gui.frmupload.GsImport.AddStyleFormatCondition("GridViewTo","Qty","tagName4","Expression","len([Qty]) = 0")
+gui.frmupload.GsImport.SetStyleFormatConditionProperty("GridViewTo","Qty","tagName4","Backcolor","Yellow")
+gui.frmupload.GsImport.SetStyleFormatConditionProperty("GridViewTo","Qty","tagName4","ApplyToRow",True)
+
+gui.frmupload.GsImport.GetColumnCount("GridViewTo",v.Local.iTotClmn)
+f.Intrinsic.Math.Sub(v.Local.iTotClmn,1,v.Local.iTotClmn)
+f.Intrinsic.Control.For(v.Local.i,0,v.Local.iTotClmn,1)
+	gui.frmupload.GsImport.GetColumnNamebyIndex("GridViewTo",v.Local.i,v.Local.stitle)
+	gui.frmupload.GsImport.SetColumnProperty("GridViewTo",v.Local.stitle,"AllowEdit",False)
+	gui.frmupload.GsImport.SetColumnProperty("GridViewTo",v.Local.stitle,"ReadOnly",True)
+
+	gui.frmupload.GsImport.SetColumnProperty("GridViewTo",v.Local.stitle,"HeaderFontBold","True")
+	gui.frmupload.GsImport.SetColumnProperty("GridViewTo",v.Local.stitle,"HeaderBackColor","#7FFF00")
+f.Intrinsic.Control.Next(v.Local.i)
+
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo","Qty","AllowEdit",True)
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo","Qty","ReadOnly",False)
+
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo", "lot", "Visible", False)
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo", "Heat", "Visible", False)
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo", "serial", "Visible", False)
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo", "TranType", "Visible", False)
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo", "Qty_1", "Visible", False)
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo", "Loc", "Visible", False)
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo", "Flag_Lot", "Visible", False)
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo", "Part", "Visible", False)
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo", "Rev", "Visible", False)
+
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo","Bin_Browser","MinWidth","30")
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo","Bin_Browser","Icon","^")
+gui.frmupload.GsImport.SetColumnProperty("GridViewTo","Bin_Browser","caption"," ")
+
+gui.frmupload.GsImport.SetGridviewProperty("GridViewTo","OptionsSelectionEnableAppearanceFocusedRow",False)
+
+Function.Intrinsic.UI.CloseWaitDialog
+
+gui.frmupload.GsImport.MainView("GridViewTo")
+F.Intrinsic.Control.CallSub(Deserialize)
+gui.frmupload..Show	
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+Program.Sub.Import_File.End
+
+Program.Sub.SS_Form_File_UnLoad.Start
+	F.Intrinsic.Control.End 
+	
+Program.Sub.SS_Form_File_UnLoad.End
+
+Program.Sub.cmd_txt_FileSelection_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+Variable.Local.sFile.Declare(String)
+Variable.Local.sDir.Declare(String)
+
+F.Intrinsic.String.Build("{0}\Select File",V.Caller.FilesDir,V.Local.sDir)
+Function.Intrinsic.UI.ShowOpenFileDialog("","csv",V.Local.sDir,V.Local.sFile)
+Function.Intrinsic.Control.If(V.Local.sFile,<>,"***CANCEL***")
+	Gui.SS_Form_File.txt_FileSelection.Text(V.Local.sFile)
+Function.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+
+Program.Sub.cmd_txt_FileSelection_Click.End
+
+Program.Sub.cmdUpload_Click.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+V.Local.sFile.Declare
+V.Local.sFields.Declare
+V.Local.sRet.Declare
+v.Local.sFilter.Declare
+v.Local.lQtyCnt.Declare
+v.Local.lLotBinCnt.Declare
+v.Local.lNonInvPartCnt.Declare
+v.Local.lBincnt.Declare
+v.Local.iFlag.Declare
+
+
+
+	v.Local.sFilter.Set("Qty = 0 and JobName <> '' ")
+	f.Data.DataView.SetFilter("Import1","DVImport",v.Local.sFilter)
+	v.Local.lQtyCnt.Set(v.DataView.Import1!DVImport.RowCount)
+
+	v.Local.sFilter.Set("Flag_Lot <> 'Y' and JobName <> '' ")
+	f.Data.DataView.SetFilter("Import1","DVImport",v.Local.sFilter)
+	v.Local.lLotBinCnt.Set(v.DataView.Import1!DVImport.RowCount)
+	
+	v.Local.sFilter.Set("Bin = '' and JobName <> '' ")
+	f.Data.DataView.SetFilter("Import1","DVImport",v.Local.sFilter)
+	v.Local.lBincnt.Set(v.DataView.Import1!DVImport.RowCount)
+
+	
+	f.Intrinsic.String.Build("Qty <> 0 and Flag_Lot = 'Y' and Bin <> '' ","",v.Local.sFilter)
+	f.Data.DataView.SetFilter("Import1","DVImport",v.Local.sFilter)
+	f.Intrinsic.Control.If(v.DataView.Import1!DVImport.RowCount,>,0)
+		f.Intrinsic.Control.If(v.Local.lQtyCnt,>,0,"or",v.Local.lLotBinCnt,>,0,v.Local.lBincnt,>,0)
+			Function.Intrinsic.UI.MsgBox ("Data file has errors, do you want to continue?", "Upload", 3,v.Local.iFlag)
+			f.Intrinsic.Control.If(v.Local.iFlag,<>,6)
+				f.Data.DataView.SetFilter("Import1","DVImport","JobName <> ''")
+				f.Intrinsic.Control.ExitSub
+			f.Intrinsic.Control.endif
+		f.Intrinsic.Control.endif
+	f.Intrinsic.Control.Else
+		f.Data.DataView.SetFilter("Import1","DVImport","JobName <> ''")
+		f.Intrinsic.UI.Msgbox("Data file has errors, cannot process")
+		f.Intrinsic.Control.ExitSub
+	f.Intrinsic.Control.endif
+	
+	f.Intrinsic.Control.CallSub(Newcallwrapper)
+'	f.Intrinsic.Control.CallSub(OldCallwrapper)
+
+ 
+ F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+Program.Sub.cmdUpload_Click.End
+
+Program.Sub.frmupload_UnLoad.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+F.Intrinsic.Control.CallSub(Serialize)
+f.Data.Dataview.close("Import1","DVImport")
+f.Data.DataTable.close("Import1")
+F.ODBC.Connection!con.Close	
+F.Intrinsic.Control.End 
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+
+Program.Sub.frmupload_UnLoad.End
+
+Program.Sub.Get_Bin.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+V.Local.sRet.Declare
+v.Local.ifor.Declare
+v.Local.sSQL.Declare
+
+
+
+Function.Data.DataView.ToDataTableDistinct("Import1","DVImport","DTTemp","PartName")
+f.Data.DataView.Create("DTTemp","DVSTemp")
+Function.Data.DataView.ToString("DTTemp", "DVSTemp", "PartName", "*!*", ",", V.Local.sRet)
+
+f.Intrinsic.String.Split(V.Local.sRet,",",V.Local.sRet)
+F.Intrinsic.Control.For(v.Local.ifor,0,V.Local.sRet.UBound,1)
+	f.Intrinsic.String.Build("'{0}'",V.Local.sRet(v.Local.ifor),V.Local.sRet(v.Local.ifor))
+f.Intrinsic.Control.Next(v.Local.ifor)
+f.Intrinsic.String.Join(V.Local.sRet,",",V.Local.sRet)
+
+'f.Intrinsic.String.Build("select rtrim(part),bin from INVENTORY_MSTR where part IN ({0})",V.Local.sRet,v.Local.sSQL)
+'Function.Data.Dictionary.CreateFromSQL("DICImport","con",v.Local.sSQL)
+
+f.Intrinsic.String.Build("select part,bin,Flag_Lot from INVENTORY_MSTR where part IN ({0})",V.Local.sRet,v.Local.sSQL)
+Function.Data.Datatable.CreateFromSQL("DT4DIC","con",v.Local.sSQL)
+
+Function.Data.Dictionary.CreateFromDataTable("DICImport","DT4DIC","part","bin")
+F.Data.Dictionary.SetDefaultReturn("DICImport","")
+F.Data.DataTable.FillFromDictionary("Import1","DICImport","PartName","Bin")
+f.Data.Dictionary.Close("DICImport")
+
+Function.Data.Dictionary.CreateFromDataTable("DICImport","DT4DIC","part","Flag_Lot")
+F.Data.Dictionary.SetDefaultReturn("DICImport","")
+F.Data.DataTable.FillFromDictionary("Import1","DICImport","PartName","Flag_Lot")
+f.Data.Dictionary.Close("DICImport")
+
+	
+'F.ODBC.Connection!con.Close	
+
+
+Program.Sub.Get_Bin.End
+
+Program.Sub.GsImport_RowCellClick.Start
+V.Local.sRet.Declare
+V.Local.sSQL.Declare
+
+	F.Intrinsic.Control.SelectCase(V.Args.Column)
+		F.Intrinsic.Control.Case("Bin_Browser")
+			V.Local.sSQL.Set("SELECT BIN , LOCATION , BIN_DESCRIPTION  FROM BIN_MASTER ORDER BY Bin,Location")
+			F.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+			F.Intrinsic.UI.Browser("Bin Code","con",V.Local.sSQL,"BIN*!*LOCATION*!*Description","30*!*30*!*70",V.Local.sRet)
+			F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+				F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+				F.Data.DataTable.SetValue("Import1",V.Args.RowIndex,"Bin",V.Local.sRet(0).Trim)
+			F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndSelect
+Program.Sub.GsImport_RowCellClick.End
+
+Program.Sub.Serialize.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sSerialize.Declare
+	
+	gui.frmupload.GsImport.Serialize("GridViewTo",V.Local.sSerialize)
+	F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"GridViewTo",5491,1000,False,"Serialize",False,0,-999.0,1/1/1980,12:00:00 AM,V.Local.sSerialize)
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End
+	F.Intrinsic.Control.EndTry
+Program.Sub.Serialize.End
+
+Program.Sub.Deserialize.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sSerialize.Declare
+	
+	F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GridViewTo",5491,1000,6,"",V.Local.sSerialize)
+	F.Intrinsic.Control.If(V.Local.sSerialize.Trim,<>,"")
+		gui.frmupload.GsImport.Deserialize(V.Local.sSerialize)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End
+	F.Intrinsic.Control.EndTry
+	
+
+Program.Sub.Deserialize.End
+
+Program.Sub.ExportFile.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sdate.Declare
+	V.Local.sdate1.Declare
+	V.Local.sFolder.Declare
+	v.local.bExcel.Declare
+	V.Local.sFileExport.Declare
+	V.Local.sFileName.Declare
+	v.Local.iRet.Declare
+	
+	f.Intrinsic.String.Build("{0}\Custom",v.Caller.GlobalDir,V.Local.sFolder)
+	f.Intrinsic.File.DirExists(V.Local.sFolder,v.local.bExcel)
+	f.Intrinsic.Control.If(v.local.bExcel,=,False)
+	    f.Intrinsic.File.CreateDir(V.Local.sFolder)
+	    f.Intrinsic.String.Build("{0}\5491",V.Local.sFolder,V.Local.sFolder)
+	    f.Intrinsic.File.CreateDir(V.Local.sFolder)
+	    f.Intrinsic.String.Build("{0}\Log\",V.Local.sFolder,V.Local.sFolder)
+	    f.Intrinsic.File.CreateDir(V.Local.sFolder)
+	F.Intrinsic.Control.else
+		f.Intrinsic.String.Build("{0}\5491",V.Local.sFolder,V.Local.sFolder)
+		f.Intrinsic.File.DirExists(V.Local.sFolder,v.local.bExcel)
+		f.Intrinsic.Control.If(v.local.bExcel,=,False)
+	    	f.Intrinsic.File.CreateDir(V.Local.sFolder)
+	    	f.Intrinsic.String.Build("{0}\Log",V.Local.sFolder,V.Local.sFolder)
+	    	f.Intrinsic.File.CreateDir(V.Local.sFolder)
+	    f.Intrinsic.Control.Else
+	    	f.Intrinsic.String.Build("{0}\Log",V.Local.sFolder,V.Local.sFolder)
+	    	f.Intrinsic.File.DirExists(V.Local.sFolder,v.local.bExcel)
+	    	f.Intrinsic.Control.If(v.local.bExcel,=,False)
+	    		f.Intrinsic.File.CreateDir(V.Local.sFolder)
+	    	f.Intrinsic.Control.EndIf
+	    f.Intrinsic.Control.EndIf
+	f.Intrinsic.Control.EndIf
+	Function.Intrinsic.String.Format (V.Ambient.Date,"YYYYDDMM",V.Local.sdate)
+	Function.Intrinsic.String.Format (V.Ambient.Time,"HHNNSS",V.Local.sdate1)
+
+	
+	f.Intrinsic.String.Build("GCG_5491_Export_{0}_{1}_{2}{3}.xlsx",v.Caller.Terminal,v.Caller.User,V.Local.sdate,V.Local.sdate1,V.Local.sFileExport)
+	
+	f.Intrinsic.String.Build("{0}\{1}",V.Local.sFolder,V.Local.sFileExport,v.Local.sFileExport)
+	gui.frmupload.GsImport.Export(V.Local.sFileExport,"xlsx")
+	
+	
+	Function.Intrinsic.UI.MsgBox ("Import completed, do you want move the file to the Custom Folder?", "Upload",4,v.Local.iRet)
+	f.Intrinsic.Control.If(v.Local.iRet,=,6)
+		'move import file to custom folder
+		f.Intrinsic.String.Build("{0}\Custom\5491\",v.Caller.GlobalDir,V.Local.sFolder)
+		F.Intrinsic.File.GetFileNameFromFQN(v.Screen.SS_Form_File!txt_FileSelection.text,V.Local.sFileName)
+		f.Intrinsic.String.Build("{0}{1}",V.Local.sFolder,V.Local.sFileName,v.Local.sFileExport)
+		f.Intrinsic.File.MoveFile(v.Screen.SS_Form_File!txt_FileSelection.text,V.Local.sFileExport,v.Local.iRet)
+		f.Intrinsic.Control.If(v.Local.iRet,=,0)
+			f.Intrinsic.UI.Msgbox("Error, Failed to move Import file")
+		f.Intrinsic.Control.endif
+	f.Intrinsic.Control.endif
+			
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+
+Program.Sub.ExportFile.End
+
+
+Program.Sub.Newcallwrapper.Start
+
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	V.Local.sRet.Declare
+	V.Local.sFile.Declare
+	V.Local.sFields.Declare
+	
+	
+	V.Local.sFields.Set("PartName*!*Rev*!*Loc*!*Qty_1*!*JobName*!*lot*!*Bin*!*Heat*!*serial*!*TranType")
+	'PART, REV, LOC, QTY, REF, LOT, BIN, HEAT, SERIAL, ISS-REC(I for Issue, R for Rec), GL-ACCT, COST, ALLOW-ZERO-COST-FLAG, WIDTH, LENGTH, UM-WIDTH, UM-LENGTH
+	Function.Data.DataView.ToString("Import1", "DVImport",V.Local.sFields,",",v.Ambient.NewLine,V.Local.sRet)
+
+	F.Intrinsic.String.Build("{0}\{1}StandIss.txt",V.Caller.FilesDir,V.Caller.CompanyCode,V.Local.sFile)
+	F.Intrinsic.File.String2File(V.Local.sFile,V.Local.sRet) 
+	F.Intrinsic.String.Build("{0}StandIss.txt",V.Caller.CompanyCode,V.Local.sFile) 
+''	F.Intrinsic.Debug.CallWrapperDebugEnable 
+	F.Global.CallWrapper.New("Test","Inventory.StandAloneIssueReceipts") 
+	F.Global.CallWrapper.SetProperty("Test","FileName",V.Local.sFile) 
+	F.Global.CallWrapper.Run("Test") 
+	
+	f.Data.DataView.SetFilter("Import1","DVImport","JobName <> ''")
+	f.Intrinsic.Control.CallSub(ExportFile)
+	f.Intrinsic.Control.CallSub(frmupload_UnLoad)
+F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End
+	F.Intrinsic.Control.EndTry	
+Program.Sub.Newcallwrapper.End
+
+Program.Sub.OldCallwrapper.Start
+F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	V.Local.sRet.Declare
+	V.Local.sFile.Declare
+	V.Local.sFields.Declare
+	V.Local.sFileName.Declare
+	
+	
+
+	V.Local.sFields.Set("PartName*!*Rev*!*Loc*!*Qty_1*!*JobName*!*lot*!*Bin*!*Heat*!*serial*!*TranType")
+	Function.Data.DataView.ToString("Import1", "DVImport",V.Local.sFields,",",v.Ambient.NewLine,V.Local.sRet)
+	
+'	F.Intrinsic.String.Concat(V.ambient.DblQuote,V.Caller.CompanyCode,"Issrec.txt",V.ambient.DblQuote,V.Local.sFileName)
+	F.Intrinsic.String.Concat(V.Caller.CompanyCode,"Issrec.txt",V.Local.sFileName)
+	F.Intrinsic.String.Concat(V.Caller.FilesDir,"\",V.Local.sFileName,V.Local.sFile)
+	
+	F.Intrinsic.File.String2File(V.Local.sFile,V.Local.sRet) 
+	F.Intrinsic.Task.LaunchGSSSync("WIR104","-c",V.Local.sFileName)
+	
+'	F.Intrinsic.UI.Msgbox(Variable.Ambient.CallWrapperReturn)
+'	
+	
+
+	f.Data.DataView.SetFilter("Import1","DVImport","JobName <> ''")
+	f.Intrinsic.Control.CallSub(ExportFile)
+	f.Intrinsic.Control.CallSub(frmupload_UnLoad)
+F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End
+	F.Intrinsic.Control.EndTry
+Program.Sub.OldCallwrapper.End
